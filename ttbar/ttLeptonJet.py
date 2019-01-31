@@ -22,13 +22,21 @@ class ttLeptonJet(analysis):
     self.pmet = TLorentzVector()
 
     # Create output histograms
-    self.CreateTH1F("Lep0Pt",   "", 24, 0, 120)
-    self.CreateTH1F("Lep0Eta",  "", 50, -2.5, 2.5)
-    self.CreateTH1F("BjetPt", "", 40, 0. , 400)
-    self.CreateTH1F("BjetEta", "", 50, -2.5, 2.5)
-    self.CreateTH1F("JetPt","", 40, 0. , 200)
-    self.CreateTH1F("JetEta", "", 50, -2.5, 2.5)
-    self.CreateTH1F("JetHT", "" , 40, 0. , 200)
+    self.CreateTH1F("LepPt",   "", 24, 0, 120)
+    self.CreateTH1F("LepEta",  "", 50, -2.5, 2.5)
+    self.CreateTH1F("Bjet0_pt",  "", 30, 0, 150)
+    self.CreateTH1F("Bjet1_pt",  "", 30, 0, 150)
+    self.CreateTH1F("jet0_pt",  "", 30, 0, 150)
+    self.CreateTH1F("jet1_pt",  "", 30, 0, 150)
+    self.CreateTH1F("Bjet0_eta",  "", 50, -2.5, 2.5)
+    self.CreateTH1F("Bjet1_eta",  "", 50, -2.5, 2.5)
+    self.CreateTH1F("jet0_eta",  "", 50, -2.5, 2.5)
+    self.CreateTH1F("jet1_eta",  "", 50, -2.5, 2.5)
+    self.CreateTH1F("Bjets_InvMass",  "", 100, 0,500)
+    self.CreateTH1F("jets_InvMass",  "", 100, 0,500)
+    self.CreateTH1F("Bjets_DeltaPhi",  "", 100, -3.14/2,3.14/2)
+    self.CreateTH1F("Bjets_DeltaPt",  "", 50,0,200)
+    self.CreateTH1F("met_pt",  "", 50,0,200)
 
   def resetObjects(self):
     ''' Reset the list where the objects are stored '''
@@ -37,31 +45,50 @@ class ttLeptonJet(analysis):
     self.selBJets = []
     self.pmet = TLorentzVector()
 
-  def FillHistograms(self, leptons, jets, bjets, pmet):
+  def FillHistograms(self, lepton, bjets, jets, pmet):
     ''' Fill all the histograms. Take the inputs from lepton list, jet list, pmet '''
     if not len(leptons) >= 1: return # Just in case
+    if not len(bjets) >= 2: return # Just in case
+    if not len(jets) >= 2: return # Just in case
     self.weight = self.EventWeight * self.SFmuon * self.SFelec * self.PUSF
 
     # Re-calculate the observables
-    lep0  = leptons[0]
-    l0pt  = lep0.Pt()  
-    l0eta = lep0.Eta()
-    bjets0 = bjets[0]; bjets1 = bjets[1]
-    bjets0pt = bjets0.Pt();bjets1pt = bjets1.Pt()
-    bjets0eta = bjets0.Eta();bjets1eta = bjets1.Eta()
-
-    #dphi  = DeltaPhi(lep0, lep1)
-    #mll   = InvMass(lep0, lep1)
-    #dipt  = DiPt(lep0, lep1)
+    lep_pt  = lepton.Pt()
+    lep_eta = lepton.Eta()
+    bjet0 = bjets[0] 
+    bjet1 = bjets[1] 
+    jet0 = jets[0] 
+    jet1 = jets[1] 
+    bjet0_pt = bjet0.Pt()
+    bjet1_pt = bjet1.Pt()
+    bjet0_eta = bjet0.Eta()
+    bjet1_eta = bjet1.Eta()
+    jet0_pt = jet0.Pt()
+    jet1_pt = jet1.Pt()
+    jet0_eta = jet0.Eta()
+    jet1_eta = jet1.Eta()
+    bjet_dphi  = DeltaPhi(bjet0, bjet1)
+    mbb   = InvMass(bjet0, bjet1)
+    mjj   = InvMass(jet0, jet1)
+    bjet_dipt = DiPt(bjet0, bjet1)
+    met_pt = pmet.Pt()
     
     ### Fill the histograms
-    self.obj['Lep0Pt'].Fill(l0pt, self.weight)
-    #self.obj['Lep1Pt'].Fill(l1pt, self.weight)
-    self.obj['Lep0Eta'].Fill(l0eta, self.weight)
-    #self.obj['Lep1Eta'].Fill(l1eta, self.weight)
-    #self.obj["InvMass"].Fill(mll, self.weight)
-    #self.obj['DilepPt'].Fill(dipt, self.weight)
-    #self.obj['DeltaPhi'].Fill(dphi/3.141592, self.weight)
+    self.obj['Lep_pt'].Fill(lep_pt, self.weight)
+    self.obj['Lep_eta'].Fill(lep_eta, self.weight)
+    self.obj['Bjet0_pt'].Fill(bjet0_pt, self.weight)
+    self.obj['Bjet0_eta'].Fill(bjet0_eta, self.weight)
+    self.obj['Bjet1_pt'].Fill(bjet1_pt, self.weight)
+    self.obj['Bjet1_eta'].Fill(bjet1_eta, self.weight)
+    self.obj['jet0_pt'].Fill(jet0_pt, self.weight)
+    self.obj['jet0_eta'].Fill(jet0_eta, self.weight)
+    self.obj['jet1_pt'].Fill(jet1_pt, self.weight)
+    self.obj['jet1_eta'].Fill(jet1_eta, self.weight)
+    self.obj["Bjets_InvMass"].Fill(mbb, self.weight)
+    self.obj["jets_InvMass"].Fill(mjj, self.weight)
+    self.obj["Bjets_DeltaPhi"].Fill(bjet_dphi, self.weight)
+    self.obj["Bjets_DeltaPt"].Fill(bjet_dipt, self.weight)
+    self.obj["met_pt"].Fill(met_pt, self.weight)
 
   def insideLoop(self, t):
     self.resetObjects()
@@ -126,6 +153,10 @@ class ttLeptonJet(analysis):
     pts  = [lep.Pt() for lep in leps]
     self.selLeptons = [lep for _,lep in sorted(zip(pts,leps))]
 
+    ##### MET 
+    self.met_pt = TLorentzVector()
+    self.pmet.SetPtEtaPhiM(t.met_pt, 0 , t.met_phi, 0)
+
     ### Calculate the weights
     self.SFelec = 1; self.SFmuon = 1; self.SFelecErr = 0; self. SFmuonErr = 0
     if not self.isData:
@@ -151,9 +182,9 @@ class ttLeptonJet(analysis):
 
     ### Event selection
     ###########################################
-    
-    ### Dilepton pair: 2 leptons, opposite sign, mll > 20 GeV, leading lep pT > 20 GeV
-    if not len(leps) >= 2:      return 
+    ### We need one lepton, two bjets and two light jets 
+    ### Each of them must be at least 10 GeV
+    if not len(leps) >= 1:      return 
     l0 = leps[0]; l1 = leps[1]
     if l0.charge*l1.charge > 0: return 
     if l0.Pt() < 20:            return 
