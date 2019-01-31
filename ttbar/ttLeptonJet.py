@@ -19,6 +19,7 @@ class ttLeptonJet(analysis):
     # Objects for the analysis
     self.selLeptons = []
     self.selJets = []
+    self.selBJets = []
     self.pmet = TLorentzVector()
 
     # Create output histograms
@@ -42,6 +43,7 @@ class ttLeptonJet(analysis):
     ''' Reset the list where the objects are stored '''
     self.selLeptons = []
     self.selJets = []
+    self.selBJets = []
     self.pmet = TLorentzVector()
 
   def FillHistograms(self, lepton, bjets, jets, pmet):
@@ -96,6 +98,19 @@ class ttLeptonJet(analysis):
     ###########################################
     if not self.isData: nGenLep = t.nGenDressedLepton 
     
+    ##### Jets
+    for i in range (t.nJet):
+      p = TLorentzVector()
+      p.SetPtEtaPhiM(t.Jet_pt[i], t.Jet_eta[i], t.Jet_phi[i], t.Jet_mass[i])
+      
+      if p.Pt() < 30 or abs(p.Eta()) > 2.4:continue
+
+      ## medium working point https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation94X
+      if t.Jet_btagDeepC > 0.4941 : 
+        self.selBJets.append(p)
+      else:
+        self.selJets.append(p)
+
     ##### Muons
     for i in range(t.nMuon):
       p = TLorentzVector()
@@ -140,8 +155,8 @@ class ttLeptonJet(analysis):
     self.selLeptons = [lep for _,lep in sorted(zip(pts,leps))]
 
     ##### MET 
-    self.met_pt = TLorentzVector()
-    self.pmet.SetPtEtaPhiM(t.met_pt, 0 , t.met_phi, 0)
+    self.pmet = TLorentzVector()
+    self.pmet.SetPtEtaPhiM(t.MET_pt, 0 , t.MET_phi, 0)
 
     ### Calculate the weights
     self.SFelec = 1; self.SFmuon = 1; self.SFelecErr = 0; self. SFmuonErr = 0
@@ -170,20 +185,24 @@ class ttLeptonJet(analysis):
     ###########################################
     ### We need one lepton, two bjets and two light jets 
     ### Each of them must be at least 10 GeV
-    def returnHighestPt(list_part,n):
-        list_pt = []
-        for idx,part in enumerate(list_par):
-            
+    #def returnHighestPt(list_part,n):
+    #    list_pt = []
+    #    for part in list_part:
+    #        list_pt.append(part[0].Pt())
+    #    
+    #    kept = sorted(range(len(a)), key=lambda i: a[i], reverse=True)[:n]         
+    #    return list_part[kept]
 
 
     if not len(leps) >= 1:      return 
-    for idx,lep in leps:   
-        pt = lep[0].Pt()
+    #self.selLeptons = returnHighestPt(self.selLeptons,1)
+    #self.selBJets= returnHighestPt(self.selBJets,2)
+    #self.selJets= returnHighestPt(self.selJets,2)
 
         
-    if l0.charge*l1.charge > 0: return 
-    if l0.Pt() < 20:            return 
-    if InvMass(l0,l1) < 20:     return  
+    #if l0.charge*l1.charge > 0: return 
+    #if l0.Pt() < 20:            return 
+    #if InvMass(l0,l1) < 20:     return  
 
     ### Fill the histograms
-    self.FillHistograms(self.selLeptons, self.selJets, self.pmet)
+    self.FillHistograms(self.selLeptons[:1], self.selBJets[:2], self.selJets[:2], self.pmet)
