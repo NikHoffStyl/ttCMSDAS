@@ -37,17 +37,16 @@ class ttLeptonJet(analysis):
     self.CreateTH1F("Bjets_DeltaPhi",  "", 100, -3.14/2,3.14/2)
     self.CreateTH1F("Bjets_DeltaPt",  "", 50,0,200)
     self.CreateTH1F("met_pt",  "", 50,0,200)
-
+ 
   def resetObjects(self):
     ''' Reset the list where the objects are stored '''
     self.selLeptons = []
     self.selJets = []
-    self.selBJets = []
     self.pmet = TLorentzVector()
 
   def FillHistograms(self, lepton, bjets, jets, pmet):
     ''' Fill all the histograms. Take the inputs from lepton list, jet list, pmet '''
-    if not len(leptons) >= 1: return # Just in case
+    if not len(lepton) >= 1: return # Just in case
     if not len(bjets) >= 2: return # Just in case
     if not len(jets) >= 2: return # Just in case
     self.weight = self.EventWeight * self.SFmuon * self.SFelec * self.PUSF
@@ -97,19 +96,6 @@ class ttLeptonJet(analysis):
     ###########################################
     if not self.isData: nGenLep = t.nGenDressedLepton 
     
-    ##### Jets
-    for i in range (t.nJets):
-      p = TLorentzVector()
-      p.SetPtEtaPhiM(t.Jets_pt[i], t.Jets_eta[i], t.Jets_phi[i], t.Jets_mass[i])
-      
-      if p.Pt() < 30 or abs(p.Eta()) > 2.4:continue
-
-      ## medium working point https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation94X
-      if t.Jet_DeepC > 0.4941 : 
-        self.selBJets.append(p)
-      else:
-        self.selJets.append(p)
-
     ##### Muons
     for i in range(t.nMuon):
       p = TLorentzVector()
@@ -184,8 +170,17 @@ class ttLeptonJet(analysis):
     ###########################################
     ### We need one lepton, two bjets and two light jets 
     ### Each of them must be at least 10 GeV
+    def returnHighestPt(list_part,n):
+        list_pt = []
+        for idx,part in enumerate(list_par):
+            
+
+
     if not len(leps) >= 1:      return 
-    l0 = leps[0]; l1 = leps[1]
+    for idx,lep in leps:   
+        pt = lep[0].Pt()
+
+        
     if l0.charge*l1.charge > 0: return 
     if l0.Pt() < 20:            return 
     if InvMass(l0,l1) < 20:     return  
