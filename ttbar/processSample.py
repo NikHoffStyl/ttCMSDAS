@@ -1,7 +1,7 @@
 import os, sys
 basepath = os.path.abspath(__file__).rsplit('/xuAnalysisCMSDAS/',1)[0]+'/xuAnalysisCMSDAS/'
 sys.path.append(basepath)
-from ttdilepton import *
+from ttLeptonJet import *
 from framework.fileReader import getDicFiles, GetAllInfoFromFile
 
 defaultPath = '/gpfs/ddn/cms/user/cmsdas/2019/ttbar/dilepton_skim/'
@@ -42,7 +42,7 @@ def runSample(sample, options, path = '', nEv = -1):
   #for sample in dic:
   nEvents, nGenEvents, nSumOfWeights, isData = GetAllInfoFromFile([path + x for x in dic[sample]])
   thexsec = xsecdic[sample] if not isData else 1
-  a = ttdilepton(path, sample, xsec = thexsec)
+  a = ttLeptonJet(path, sample, xsec = thexsec)
   a.SetOptions(options)
   a.SetNSlots(nSlots)
   a.SetOutDir('temp')
