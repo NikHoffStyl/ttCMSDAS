@@ -37,11 +37,12 @@ class ttLeptonJet(analysis):
     self.CreateTH1F("Bjets_DeltaPhi",  "", 100, -3.14/2,3.14/2)
     self.CreateTH1F("Bjets_DeltaPt",  "", 50,0,200)
     self.CreateTH1F("met_pt",  "", 50,0,200)
- 
+
   def resetObjects(self):
     ''' Reset the list where the objects are stored '''
     self.selLeptons = []
     self.selJets = []
+    self.selBJets = []
     self.pmet = TLorentzVector()
 
   def FillHistograms(self, lepton, bjets, jets, pmet):
@@ -96,6 +97,19 @@ class ttLeptonJet(analysis):
     ###########################################
     if not self.isData: nGenLep = t.nGenDressedLepton 
     
+    ##### Jets
+    for i in range (t.nJets):
+      p = TLorentzVector()
+      p.SetPtEtaPhiM(t.Jets_pt[i], t.Jets_eta[i], t.Jets_phi[i], t.Jets_mass[i])
+      
+      if p.Pt() < 30 or abs(p.Eta()) > 2.4:continue
+
+      ## medium working point https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation94X
+      if t.Jet_DeepC > 0.4941 : 
+        self.selBJets.append(p)
+      else:
+        self.selJets.append(p)
+
     ##### Muons
     for i in range(t.nMuon):
       p = TLorentzVector()
